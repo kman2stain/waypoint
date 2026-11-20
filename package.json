@@ -1,7 +1,7 @@
 {
   "name": "waypoint",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Personal career-tracking PWA. All data stays on the device.",
   "type": "module",
   "scripts": {
@@ -16,6 +16,7 @@
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.10.6",
+    "fake-indexeddb": "^6.2.8",
     "typescript": "^7.0.2",
     "vite": "^8.3.8",
     "vite-plugin-pwa": "^2.0.0",

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'preact/hooks';
 import { registerSW } from 'virtual:pwa-register';
+import { canLeave } from '../router';
 
 /**
  * Registers the service worker. When a new version is downloaded it waits for
@@ -29,7 +30,12 @@ export function UpdateToast() {
     return (
       <div class="toast" role="status">
         <p>A new version of Waypoint is ready.</p>
-        <button class="btn" onClick={() => update?.(true)}>
+        <button
+          class="btn"
+          onClick={async () => {
+            if (await canLeave()) update?.(true);
+          }}
+        >
           Reload
         </button>
         <button class="btn" onClick={() => setNeedRefresh(false)} aria-label="Later">

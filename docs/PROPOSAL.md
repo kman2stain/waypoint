@@ -1,4 +1,4 @@
-# Waypoint — structure and data schema (proposal, awaiting approval)
+# Waypoint — structure and data schema (approved)
 
 Stack: Preact + TypeScript, Vite, `vite-plugin-pwa` (build-time only; generates the service worker
 and precache list, makes no network calls at runtime). Hash routing (`#/notes`) and `base: './'`
@@ -59,7 +59,7 @@ Dates without time are `YYYY-MM-DD` strings. Nothing is ever deleted without a c
 | `projects` | `name`, `archived` (lightweight, created inline from Notes/Wins) | `name` |
 | `notes` | `text`, `tags: string[]`, `milestoneId?`, `projectId?` | `createdAt`, multiEntry `tags` |
 | `wins` | `title`, `before?`, `after?` (numbers, only if typed), `unit?`, `date?`, `source?` (source / confirmed by), `context?`, `milestoneId?`, `projectId?` | `date` |
-| `reminders` | `title`, `kind` (`weekly_review` \| `study_block` \| `one_off`), `start` (local datetime), `durationMin`, `repeat` `{ freq: none\|daily\|weekly\|monthly, interval, byDay?, until? }`, `alertMinutesBefore: number[]`, `notes?`, `active` | — |
+| `reminders` | `title`, `kind` (`weekly_review` \| `study_block` \| `backup` \| `one_off`), `start` (local datetime), `durationMin`, `repeat` `{ freq: none\|daily\|weekly\|monthly, interval, byDay?, until? }`, `alertMinutesBefore: number[]`, `notes?`, `active` | — |
 | *later* `studyLogs` | `weekStart` (Monday), `hours` | `weekStart` |
 | *later* `decisions` | `title`, `answers { ownsBuild, measurable, coreTech }` (booleans), `verdict` (`take_it` \| `probably_admin`), `note` | `createdAt` |
 
@@ -107,10 +107,12 @@ Shown as a per-change diff with checkboxes; nothing is written until "Apply sele
 |---|---|---|
 | M0 | Scaffold: Vite + Preact + TS, PWA (manifest, icons, offline), theme, tab shell, Actions workflow, README | ✔ |
 | M1 | Data layer + seed + Roadmap (status, target date, notes, evidence) | ✔ |
-| M2 | Export / Import (done early so data has a backup path from day one) | ✔ |
+| M2 | Export / Import (done early so data has a backup path from day one), with a "Save to Files" prompt after every export and "last backup" shown in More | ✔ |
 | M3 | Notes: quick capture, tags, milestone/project link, search | ✔ |
-| M4 | Wins log + "Copy as CV bullet" | ✔ |
-| M5 | Reminders + .ics export | ✔ |
+| M4 | Reminders + .ics export, including a ready-made recurring "Export your Waypoint backup" reminder | ✔ |
+| M5 | Wins log + "Copy as CV bullet" | ✔ |
+
+Approved 2026-11-20 with two changes: backup reminder + save-to-Files prompt, and Reminders moved before Wins.
 | M6 | Progress: weekly study hours, % per phase | later |
 | M7 | Opportunity test | later |
 | M8 | AI update (copy status / paste proposal / diff / approve) | later |

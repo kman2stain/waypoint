@@ -5,7 +5,7 @@ export type Tab = (typeof TABS)[number];
 
 export interface Route {
   tab: Tab;
-  /** Path segments after the tab, e.g. #/roadmap/milestone/abc → ['milestone', 'abc']. */
+  /** Path segments after the tab, e.g. #/roadmap/m/abc → ['m', 'abc']. */
   params: string[];
 }
 
@@ -40,4 +40,27 @@ export function useRoute(): Route {
     return () => window.removeEventListener('hashchange', onChange);
   }, []);
   return route;
+}
+
+// ---- leave guard: lets an edit screen ask "Discard changes?" before navigating away ----
+type LeaveGuard = () => boolean | Promise<boolean>;
+let leaveGuard: LeaveGuard | null = null;
+
+/** Register a guard that returns true when it's OK to leave. Returns an unregister function. */
+export function setLeaveGuard(fn: LeaveGuard): () => void {
+  leaveGuard = fn;
+  return () => {
+    if (leaveGuard === fn) leaveGuard = null;
+  };
+}
+
+/** True if there are no unsaved edits, or the user agreed to discard them. */
+export async function canLeave(): Promise<boolean> {
+  return !leaveGuard || (await leaveGuard());
+}
+
+export async function navigate(to: string): Promise<void> {
+  if (!(await canLeave())) return;
+  leaveGuard = null;
+  if (location.hash !== to) location.hash = to;
 }

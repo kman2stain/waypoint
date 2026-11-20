@@ -266,6 +266,343 @@ ol.steps li + li {
   margin-top: 0.35rem;
 }
 
+.small {
+  font-size: 0.85rem;
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--accent);
+}
+
+.btn-danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: var(--surface);
+}
+
+.btn-danger-text {
+  color: var(--danger);
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.badge-accent {
+  background: var(--accent-soft);
+  color: var(--accent);
+  margin-left: 0.5rem;
+  vertical-align: middle;
+}
+
+.badge-warn {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+/* ---------- Top bar back link ---------- */
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  min-height: var(--tap);
+  margin: -0.5rem 0 0 -0.5rem;
+  padding: 0 0.5rem;
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+/* ---------- Roadmap ---------- */
+.start-card {
+  margin-bottom: 0.5rem;
+}
+
+.start-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.phase {
+  margin-top: 1.75rem;
+}
+
+.phase-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.phase-head h2 {
+  font-size: 1.2rem;
+}
+
+.phase-dates {
+  margin: 0.15rem 0 0;
+}
+
+.progress {
+  height: 6px;
+  margin: 0.6rem 0 0.75rem;
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.progress span {
+  display: block;
+  height: 100%;
+  background: var(--ok);
+  border-radius: inherit;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.list li + li {
+  border-top: 1px solid var(--border);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 56px;
+  padding: 0.75rem 0.75rem 0.75rem 1rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.row:active {
+  background: var(--surface-2);
+}
+
+.row-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+}
+
+.row-title {
+  overflow-wrap: anywhere;
+}
+
+.row-sub {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.status-icon {
+  flex: none;
+}
+.status-not_started {
+  color: var(--muted);
+}
+.status-in_progress {
+  color: var(--accent);
+}
+.status-done {
+  color: var(--ok);
+}
+
+.chevron {
+  flex: none;
+  color: var(--muted);
+}
+
+.add-btn {
+  margin-top: 0.25rem;
+}
+
+/* ---------- Forms ---------- */
+.field {
+  display: block;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.field-label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+  padding: 0;
+}
+
+input[type='text'],
+input[type='date'],
+input[type='search'],
+textarea,
+select {
+  display: block;
+  width: 100%;
+  min-height: var(--tap);
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  /* 16px minimum stops iOS zooming in when a field is focused. */
+  font-size: max(1rem, 16px);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+input[type='date'] {
+  min-width: 10rem;
+}
+
+textarea {
+  resize: vertical;
+  line-height: 1.4;
+}
+
+.inline {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.inline input {
+  flex: 1;
+}
+
+.two-col {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 0.75rem;
+}
+
+.evidence {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0 0 0.75rem;
+}
+
+.evidence .btn {
+  justify-self: start;
+}
+
+/* Segmented control built from radio buttons (keyboard + screen reader friendly) */
+.seg-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--surface-2);
+}
+
+.seg-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--tap);
+  padding: 0.25rem 0.4rem;
+  border-radius: 9px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.seg-option input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.seg-option.checked {
+  background: var(--surface);
+  color: var(--accent);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.15);
+}
+
+.seg-option:has(input:focus-visible) {
+  outline: 3px solid var(--focus);
+  outline-offset: 1px;
+}
+
+.save-bar {
+  position: sticky;
+  bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 8px);
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  padding: 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.save-bar .btn-primary {
+  min-width: 7rem;
+}
+
+/* ---------- Modal ---------- */
+.modal {
+  width: min(28rem, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.modal::backdrop {
+  background: rgb(0 0 0 / 0.45);
+}
+
+.modal-body {
+  padding: 1.25rem;
+}
+
+.modal-body h2 {
+  font-size: 1.2rem;
+  margin-bottom: 0.75rem;
+}
+
+.modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+}
+
 /* ---------- Toast (update / offline ready) ---------- */
 .toast {
   position: fixed;
