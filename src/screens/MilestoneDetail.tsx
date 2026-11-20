@@ -1,12 +1,15 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { confirmAction } from '../components/ConfirmDialog';
 import { EmptyState } from '../components/EmptyState';
-import { remove, put } from '../db/db';
+import { Link } from '../components/Link';
+import { useLeaveGuard } from '../components/useLeaveGuard';
+import { put, write, type WriteOp } from '../db/db';
 import { useAll } from '../db/hooks';
-import { MILESTONE_STATUSES, STATUS_LABELS, type Evidence, type Milestone, type Phase } from '../db/schema';
+import { MILESTONE_STATUSES, STATUS_LABELS, type Evidence, type Milestone, type Note, type Phase } from '../db/schema';
 import { isISODate, todayISO } from '../lib/dates';
+import { formatDateTime } from '../lib/format';
 import { newId } from '../lib/ids';
-import { href, navigate, setLeaveGuard } from '../router';
+import { href, navigate } from '../router';
 
 type Draft = Pick<Milestone, 'title' | 'status' | 'targetDate' | 'notes' | 'evidence'>;
 
@@ -35,13 +38,13 @@ function cleanEvidence(e: Evidence): Evidence {
 export function MilestoneDetail(props: { id?: string; newInPhase?: string }) {
   const milestones = useAll<Milestone>('milestones');
   const phases = useAll<Phase>('phases');
+  const notes = useAll<Note>('notes');
   const existing = props.id ? milestones?.find((m) => m.id === props.id) : undefined;
   const phaseId = existing?.phaseId ?? props.newInPhase;
   const phase = phases?.find((p) => p.id === phaseId);
 
   const [draft, setDraft] = useState<Draft | null>(null);
   const original = useRef<Draft | null>(null);
-  const saving = useRef(false);
 
   // Initialise the draft once the record has loaded.
   useEffect(() => {
@@ -54,25 +57,9 @@ export function MilestoneDetail(props: { id?: string; newInPhase?: string }) {
   }, [milestones, existing, draft, props.newInPhase]);
 
   const dirty = !!draft && JSON.stringify(draft) !== JSON.stringify(original.current);
-  const dirtyRef = useRef(dirty);
-  dirtyRef.current = dirty;
+  const bypass = useLeaveGuard(dirty, 'milestone');
 
-  useEffect(
-    () =>
-      setLeaveGuard(async () => {
-        if (!dirtyRef.current || saving.current) return true;
-        return confirmAction({
-          title: 'Discard changes?',
-          body: "Your edits to this milestone haven't been saved.",
-          confirmLabel: 'Discard',
-          cancelLabel: 'Keep editing',
-          danger: true,
-        });
-      }),
-    [],
-  );
-
-  if (!milestones || !phases) return <p class="muted">Loading…</p>;
+  if (!milestones || !phases || !notes) return <p class="muted">Loading…</p>;
   if ((props.id && !existing) || (props.newInPhase && !phase)) {
     return (
       <EmptyState title="Milestone not found">
@@ -113,22 +100,37 @@ export function MilestoneDetail(props: { id?: string; newInPhase?: string }) {
     if (draft.targetDate) record.targetDate = draft.targetDate;
     else delete record.targetDate;
 
-    saving.current = true;
+    bypass.current = true;
     await put('milestones', record);
     await navigate(BACK);
   };
 
+  const linkedNotes = existing
+    ? notes.filter((n) => n.milestoneId === existing.id).sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+    : [];
+
   const deleteMilestone = async () => {
     if (!existing) return;
+    const keep = linkedNotes.length
+      ? ` Its ${linkedNotes.length} linked note${linkedNotes.length === 1 ? '' : 's'} will be kept, just unlinked.`
+      : '';
     const ok = await confirmAction({
       title: 'Delete this milestone?',
-      body: `"${existing.title}" and its evidence will be removed. This can't be undone (unless you restore a backup).`,
+      body: `"${existing.title}" and its evidence will be removed.${keep} This can't be undone (unless you restore a backup).`,
       confirmLabel: 'Delete',
       danger: true,
     });
     if (!ok) return;
-    saving.current = true;
-    await remove('milestones', existing.id);
+    const now = new Date().toISOString();
+    // One transaction: delete the milestone and unlink its notes, so nothing points at a missing milestone.
+    const ops: WriteOp[] = [{ type: 'delete', store: 'milestones', key: existing.id }];
+    for (const n of linkedNotes) {
+      const { milestoneId: _unlinked, ...rest } = n;
+      const unlinked: Note = { ...rest, updatedAt: now };
+      ops.push({ type: 'put', store: 'notes', value: unlinked });
+    }
+    bypass.current = true;
+    await write(ops);
     await navigate(BACK);
   };
 
@@ -245,6 +247,29 @@ export function MilestoneDetail(props: { id?: string; newInPhase?: string }) {
           + Add evidence
         </button>
       </div>
+
+      {existing && (
+        <div class="field">
+          <h2 class="section-title" style={{ marginTop: '0.5rem' }}>
+            Notes {linkedNotes.length > 0 && `(${linkedNotes.length})`}
+          </h2>
+          {linkedNotes.length > 0 && (
+            <ul class="linked-notes">
+              {linkedNotes.map((n) => (
+                <li key={n.id}>
+                  <Link class="note-card" href={href('notes', 'n', n.id)}>
+                    <span class="note-text">{n.text}</span>
+                    <span class="note-meta">{formatDateTime(n.createdAt)}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+          <Link class="btn" href={href('notes', 'new', existing.id)}>
+            + Add note
+          </Link>
+        </div>
+      )}
 
       {existing && (
         <div style={{ paddingTop: '1rem' }}>

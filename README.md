@@ -61,7 +61,7 @@ See [`docs/PROPOSAL.md`](docs/PROPOSAL.md) for the file structure, data schema a
 - [x] **M0** Scaffold: PWA shell, offline, icons, light/dark, deploy workflow
 - [x] **M1** Roadmap with seed data
 - [x] **M2** Export / Import (with Save to Files prompt)
-- [ ] **M3** Notes
+- [x] **M3** Notes
 - [ ] **M4** Reminders (.ics), including a backup reminder
 - [ ] **M5** Wins log + CV bullet
 - [ ] Later: Progress, Opportunity test, AI update, optional GitHub sync

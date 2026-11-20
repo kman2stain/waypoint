@@ -7,6 +7,8 @@ import { requestPersistentStorage } from './lib/device';
 import { href, navigate, type Route, type Tab, useRoute } from './router';
 import { MilestoneDetail } from './screens/MilestoneDetail';
 import { More } from './screens/More';
+import { NoteDetail, noteBackHref } from './screens/NoteDetail';
+import { Notes } from './screens/Notes';
 import { Placeholder } from './screens/Placeholder';
 import { Roadmap } from './screens/Roadmap';
 
@@ -21,9 +23,14 @@ const NAV: { tab: Tab; label: string; Icon: FunctionComponent }[] = [
 const STORAGE_LABELS = { persistent: 'Persistent', 'best-effort': 'Best effort', unknown: 'Unknown' } as const;
 
 /** Sub-screen title + back target, or null for a tab's root screen. */
-function subScreen(route: Route): { title: string; back: string } | null {
-  if (route.tab === 'roadmap' && route.params[0] === 'm') return { title: 'Milestone', back: href('roadmap') };
-  if (route.tab === 'roadmap' && route.params[0] === 'new') return { title: 'New milestone', back: href('roadmap') };
+function subScreen(route: Route): { title: string; back: string; backLabel?: string } | null {
+  const [kind, id] = route.params;
+  if (route.tab === 'roadmap' && kind === 'm') return { title: 'Milestone', back: href('roadmap') };
+  if (route.tab === 'roadmap' && kind === 'new') return { title: 'New milestone', back: href('roadmap') };
+  if (route.tab === 'notes' && kind === 'n') return { title: 'Note', back: href('notes') };
+  if (route.tab === 'notes' && kind === 'new') {
+    return { title: 'New note', back: noteBackHref(id), backLabel: id ? 'Milestone' : undefined };
+  }
   return null;
 }
 
@@ -34,6 +41,10 @@ function Screen(props: { route: Route; storage: string }) {
       if (params[0] === 'm' && params[1]) return <MilestoneDetail key={params[1]} id={params[1]} />;
       if (params[0] === 'new' && params[1]) return <MilestoneDetail key={`new-${params[1]}`} newInPhase={params[1]} />;
       return <Roadmap />;
+    case 'notes':
+      if (params[0] === 'n' && params[1]) return <NoteDetail key={params[1]} id={params[1]} />;
+      if (params[0] === 'new') return <NoteDetail key={`new-${params[1] ?? ''}`} isNew forMilestone={params[1]} />;
+      return <Notes />;
     case 'more':
       return <More storage={props.storage} />;
     default:
@@ -94,7 +105,7 @@ export function App() {
             <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
               <path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
-            {current.label}
+            {sub.backLabel ?? current.label}
           </a>
         )}
         <h1>{title}</h1>
