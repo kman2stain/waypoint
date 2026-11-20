@@ -1,0 +1,28 @@
+# Dependencies and build output
+node_modules/
+dist/
+dev-dist/
+coverage/
+
+# Secrets and local config — never commit these
+.env
+.env.*
+*.local
+*.pem
+*.key
+
+# Personal data: Waypoint backups exported from the app
+backups/
+waypoint-backup*.json
+*.ics
+
+# Local tool config (machine-specific paths)
+.claude/
+
+# Editor / OS noise
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+*.log
