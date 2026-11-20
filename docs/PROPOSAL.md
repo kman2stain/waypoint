@@ -70,7 +70,7 @@ interface Evidence { id: string; text: string; date?: string; confirmedBy?: stri
 Notes on choices:
 - **Evidence is a list**, not one field, because a milestone like "collect written impact confirmations" naturally has several.
 - **Decision gates** (month 12, month 24) are milestones with `kind: 'gate'` in phases 3 and 4. With `meta.startDate` set, gates and phases show a real calendar month.
-- **Wins store numbers as numbers** and the CV builder only interpolates fields that exist. No percentages, no rounding, no direction words it can't justify. Missing number → `[BEFORE: add number]`.
+- **Wins store numbers as numbers** and the CV builder only interpolates fields that exist. No percentages, no rounding, no direction words it can't justify. No numbers at all → a plain line with no placeholders; only one of the two → the other becomes `[BEFORE: add number]` / `[AFTER: add number]`.
 - **Reminders .ics**: one VEVENT per reminder with a stable `UID` (`<id>@waypoint`), floating local time, RRULE from `repeat`, one VALARM per `alertMinutesBefore`.
 
 ## 3. Backup / import file (also the future sync format)

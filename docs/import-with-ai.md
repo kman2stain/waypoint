@@ -47,7 +47,7 @@ You are helping me load my real internship history into Waypoint, a personal car
 ### Truthfulness rules (most important)
 
 - Only use facts I have actually told you. Do not invent, estimate, round, or fill in "typical" values.
-- A win's `before` and `after` must be numbers I have explicitly stated. If I didn't give a number, leave that field out completely. The app then shows a `[BEFORE: add number]` placeholder so I can fill it in myself.
+- A win's `before` and `after` must be numbers I have explicitly stated. If I didn't give a number, leave that field out completely. A win with neither number is shown as a plain line; if only one is missing, the app shows a placeholder for it so I can fill it in myself.
 - Every win that has a number must have a `source` saying who or what confirms it (e.g. `"Ops manager email, 12 Mar"`). If there is no source, leave the numbers out and describe what you know in `context`.
 - No percentages or calculated differences anywhere.
 - If you're not sure whether something happened or is finished, don't mark it done. Put it in a note instead and list it in your summary.

@@ -38,14 +38,21 @@ describe('buildCvBullet', () => {
     expect(b.missing).toEqual([]);
   });
 
-  it('leaves clearly marked placeholders for missing numbers', () => {
+  it('leaves a clearly marked placeholder when only one number is missing', () => {
     const onlyAfter = buildCvBullet({ title: 'Cut invoice errors', after: 3, unit: 'per month' });
     expect(onlyAfter.text).toBe(`Cut invoice errors: from ${PLACEHOLDER_BEFORE} to 3 per month.`);
     expect(onlyAfter.missing).toEqual(['before']);
 
-    const none = buildCvBullet({ title: 'Built the PR approval app' });
-    expect(none.text).toBe(`Built the PR approval app: from ${PLACEHOLDER_BEFORE} to ${PLACEHOLDER_AFTER}.`);
-    expect(none.missing).toEqual(['before', 'after']);
+    const onlyBefore = buildCvBullet({ title: 'Cut invoice errors', before: 9 });
+    expect(onlyBefore.text).toBe(`Cut invoice errors: from 9 to ${PLACEHOLDER_AFTER}.`);
+    expect(onlyBefore.missing).toEqual(['after']);
+  });
+
+  it('writes a plain line with no placeholders when there are no numbers', () => {
+    const none = buildCvBullet({ title: 'Wrote 21-page PR to PO user guide', source: 'IT lead' });
+    expect(none.text).toBe('Wrote 21-page PR to PO user guide (confirmed by IT lead).');
+    expect(none.missing).toEqual([]);
+    expect(buildCvBullet({ title: 'Built the PR approval app' }).text).toBe('Built the PR approval app.');
   });
 
   it('never calculates, rounds or adds direction words', () => {

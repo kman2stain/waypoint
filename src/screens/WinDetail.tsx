@@ -269,7 +269,8 @@ export function WinDetail(props: { id?: string; isNew?: boolean }) {
           <BulletText text={bullet.text} />
         </p>
         <p class="muted small" style={{ margin: 0 }}>
-          Built only from the fields above. Missing numbers stay as highlighted placeholders; nothing is estimated.
+          Built only from the fields above; nothing is estimated. Leave both numbers empty for a win without a before and
+          after. If you fill in only one, the other stays as a highlighted placeholder.
         </p>
         <div class="capture-row">
           <span class="muted small" role="status" aria-live="polite">

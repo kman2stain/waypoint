@@ -77,7 +77,7 @@ async function aiEditedFile() {
 }
 
 describe('AI import file (docs/import-with-ai.md)', () => {
-  it('validates and restores, keeping missing numbers as placeholders', async () => {
+  it('validates and restores, with a no-numbers win as a plain line', async () => {
     const file = await aiEditedFile();
     const r = validateBackup(JSON.parse(JSON.stringify(file)));
     expect(r.ok).toBe(true);
@@ -89,7 +89,7 @@ describe('AI import file (docs/import-with-ai.md)', () => {
     expect((await get<Meta>('meta', 'meta'))?.startDate).toBe('2026-09-01');
     const wins = await getAll<Win>('wins');
     const noNumbers = wins.find((w) => w.id === 'imp-win-002')!;
-    expect(buildCvBullet(noNumbers).missing).toEqual(['before', 'after']);
+    expect(buildCvBullet(noNumbers).missing).toEqual([]);
   });
 
   it('rejects the mistakes the prompt warns about', async () => {

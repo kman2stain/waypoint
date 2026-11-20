@@ -70,10 +70,12 @@ export function Wins() {
                     <span class="row-title">
                       <strong>{w.title}</strong>
                     </span>
-                    <span class="win-numbers">
-                      {w.before !== undefined ? formatNumber(w.before) : '?'} → {w.after !== undefined ? formatNumber(w.after) : '?'}
-                      {w.unit ? ` ${w.unit}` : ''}
-                    </span>
+                    {(w.before !== undefined || w.after !== undefined) && (
+                      <span class="win-numbers">
+                        {w.before !== undefined ? formatNumber(w.before) : '?'} → {w.after !== undefined ? formatNumber(w.after) : '?'}
+                        {w.unit ? ` ${w.unit}` : ''}
+                      </span>
+                    )}
                     <span class="note-meta">
                       {[
                         w.date ? formatDate(w.date) : null,
