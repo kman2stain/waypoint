@@ -26,6 +26,10 @@ and keep the file in iCloud Drive. **More → Restore from backup** checks the f
 contains next to what's on the phone, and only replaces your data after you confirm.
 Never commit backup files to this repo; `.gitignore` already blocks the usual names.
 
+Already done a lot before you started using the app? See
+[`docs/import-with-ai.md`](docs/import-with-ai.md) for a prompt that has an AI assistant fill in
+your milestones, evidence, notes and wins in a backup file you then restore.
+
 ## Deploy (GitHub Pages)
 
 1. Create a **public** GitHub repository and upload or push this folder to the `main` branch.
