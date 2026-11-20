@@ -63,5 +63,5 @@ See [`docs/PROPOSAL.md`](docs/PROPOSAL.md) for the file structure, data schema a
 - [x] **M2** Export / Import (with Save to Files prompt)
 - [x] **M3** Notes
 - [x] **M4** Reminders (.ics), including a backup reminder
-- [ ] **M5** Wins log + CV bullet
+- [x] **M5** Wins log + CV bullet (v1 complete)
 - [ ] Later: Progress, Opportunity test, AI update, optional GitHub sync

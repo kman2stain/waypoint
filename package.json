@@ -1,7 +1,7 @@
 {
   "name": "waypoint",
   "private": true,
-  "version": "0.5.0",
+  "version": "1.0.0",
   "description": "Personal career-tracking PWA. All data stays on the device.",
   "type": "module",
   "scripts": {

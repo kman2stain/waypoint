@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { confirmAction } from '../components/ConfirmDialog';
 import { EmptyState } from '../components/EmptyState';
+import { MilestoneSelect, ProjectSelect, projectChoiceValid, resolveProject } from '../components/LinkFields';
 import { TagInput } from '../components/TagInput';
 import { useLeaveGuard } from '../components/useLeaveGuard';
 import { write, type WriteOp } from '../db/db';
@@ -10,8 +11,6 @@ import { formatDateTime } from '../lib/format';
 import { newId } from '../lib/ids';
 import { extractHashtags, uniqueTags } from '../lib/tags';
 import { href, navigate } from '../router';
-
-const NEW_PROJECT = '__new__';
 
 interface Draft {
   text: string;
@@ -73,26 +72,14 @@ export function NoteDetail(props: { id?: string; isNew?: boolean; forMilestone?:
   const update = (fn: (d: Draft) => Draft) => setDraft((d) => (d ? fn(d) : d));
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => update((d) => ({ ...d, [k]: v }));
 
-  const newName = draft.newProjectName.trim();
-  const valid = draft.text.trim().length > 0 && (draft.projectId !== NEW_PROJECT || newName.length > 0);
+  const valid = draft.text.trim().length > 0 && projectChoiceValid(draft.projectId, draft.newProjectName);
   const hashtagsInText = extractHashtags(draft.text).filter((t) => !draft.tags.includes(t));
 
   const save = async () => {
     if (!valid) return;
     const now = new Date().toISOString();
-    const ops: WriteOp[] = [];
-
-    let projectId: string | undefined = draft.projectId || undefined;
-    if (draft.projectId === NEW_PROJECT) {
-      // Reuse a project with the same name instead of creating a duplicate.
-      const same = projects.find((p) => p.name.toLowerCase() === newName.toLowerCase());
-      if (same) projectId = same.id;
-      else {
-        const project: Project = { id: newId(), name: newName, archived: false, createdAt: now, updatedAt: now };
-        ops.push({ type: 'put', store: 'projects', value: project });
-        projectId = project.id;
-      }
-    }
+    const { projectId, ops: projectOps } = resolveProject(draft.projectId, draft.newProjectName, projects, now);
+    const ops: WriteOp[] = [...projectOps];
 
     const text = draft.text.trim();
     const note: Note = {
@@ -126,9 +113,6 @@ export function NoteDetail(props: { id?: string; isNew?: boolean; forMilestone?:
     bypass.current = true;
     await navigate(back);
   };
-
-  const sortedPhases = [...phases].sort((a, b) => a.order - b.order);
-  const activeProjects = projects.filter((p) => !p.archived).sort((a, b) => a.name.localeCompare(b.name));
 
   return (
     <form
@@ -167,51 +151,21 @@ export function NoteDetail(props: { id?: string; isNew?: boolean; forMilestone?:
         )}
       </div>
 
-      <label class="field">
-        <span class="field-label">
-          Milestone <span class="muted">(optional)</span>
-        </span>
-        <select value={draft.milestoneId} onChange={(e) => set('milestoneId', e.currentTarget.value)}>
-          <option value="">None</option>
-          {sortedPhases.map((p) => (
-            <optgroup key={p.id} label={p.title}>
-              {milestones
-                .filter((m) => m.phaseId === p.id)
-                .sort((a, b) => a.order - b.order)
-                .map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.title}
-                  </option>
-                ))}
-            </optgroup>
-          ))}
-        </select>
-      </label>
+      <MilestoneSelect
+        value={draft.milestoneId}
+        phases={phases}
+        milestones={milestones}
+        onChange={(v) => set('milestoneId', v)}
+      />
 
-      <div class="field">
-        <label class="field-label" for="note-project">
-          Project <span class="muted">(optional)</span>
-        </label>
-        <select id="note-project" value={draft.projectId} onChange={(e) => set('projectId', e.currentTarget.value)}>
-          <option value="">None</option>
-          {activeProjects.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
-            </option>
-          ))}
-          <option value={NEW_PROJECT}>+ New project…</option>
-        </select>
-        {draft.projectId === NEW_PROJECT && (
-          <input
-            type="text"
-            style={{ marginTop: '0.5rem' }}
-            placeholder="Project name, e.g. PR app"
-            aria-label="New project name"
-            value={draft.newProjectName}
-            onInput={(e) => set('newProjectName', e.currentTarget.value)}
-          />
-        )}
-      </div>
+      <ProjectSelect
+        id="note-project"
+        value={draft.projectId}
+        newName={draft.newProjectName}
+        projects={projects}
+        onChange={(v) => set('projectId', v)}
+        onNewName={(v) => set('newProjectName', v)}
+      />
 
       {existing && (
         <div style={{ paddingTop: '1rem' }}>

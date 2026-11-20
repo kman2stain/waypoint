@@ -5,7 +5,15 @@ import { Link } from '../components/Link';
 import { useLeaveGuard } from '../components/useLeaveGuard';
 import { put, write, type WriteOp } from '../db/db';
 import { useAll } from '../db/hooks';
-import { MILESTONE_STATUSES, STATUS_LABELS, type Evidence, type Milestone, type Note, type Phase } from '../db/schema';
+import {
+  MILESTONE_STATUSES,
+  STATUS_LABELS,
+  type Evidence,
+  type Milestone,
+  type Note,
+  type Phase,
+  type Win,
+} from '../db/schema';
 import { isISODate, todayISO } from '../lib/dates';
 import { formatDateTime } from '../lib/format';
 import { newId } from '../lib/ids';
@@ -39,6 +47,7 @@ export function MilestoneDetail(props: { id?: string; newInPhase?: string }) {
   const milestones = useAll<Milestone>('milestones');
   const phases = useAll<Phase>('phases');
   const notes = useAll<Note>('notes');
+  const wins = useAll<Win>('wins');
   const existing = props.id ? milestones?.find((m) => m.id === props.id) : undefined;
   const phaseId = existing?.phaseId ?? props.newInPhase;
   const phase = phases?.find((p) => p.id === phaseId);
@@ -59,7 +68,7 @@ export function MilestoneDetail(props: { id?: string; newInPhase?: string }) {
   const dirty = !!draft && JSON.stringify(draft) !== JSON.stringify(original.current);
   const bypass = useLeaveGuard(dirty, 'milestone');
 
-  if (!milestones || !phases || !notes) return <p class="muted">Loading…</p>;
+  if (!milestones || !phases || !notes || !wins) return <p class="muted">Loading…</p>;
   if ((props.id && !existing) || (props.newInPhase && !phase)) {
     return (
       <EmptyState title="Milestone not found">
@@ -109,11 +118,15 @@ export function MilestoneDetail(props: { id?: string; newInPhase?: string }) {
     ? notes.filter((n) => n.milestoneId === existing.id).sort((a, b) => b.createdAt.localeCompare(a.createdAt))
     : [];
 
+  const linkedWins = existing ? wins.filter((w) => w.milestoneId === existing.id) : [];
+
   const deleteMilestone = async () => {
     if (!existing) return;
-    const keep = linkedNotes.length
-      ? ` Its ${linkedNotes.length} linked note${linkedNotes.length === 1 ? '' : 's'} will be kept, just unlinked.`
-      : '';
+    const linked = [
+      linkedNotes.length ? `${linkedNotes.length} linked note${linkedNotes.length === 1 ? '' : 's'}` : '',
+      linkedWins.length ? `${linkedWins.length} linked win${linkedWins.length === 1 ? '' : 's'}` : '',
+    ].filter(Boolean);
+    const keep = linked.length ? ` Its ${linked.join(' and ')} will be kept, just unlinked.` : '';
     const ok = await confirmAction({
       title: 'Delete this milestone?',
       body: `"${existing.title}" and its evidence will be removed.${keep} This can't be undone (unless you restore a backup).`,
@@ -128,6 +141,11 @@ export function MilestoneDetail(props: { id?: string; newInPhase?: string }) {
       const { milestoneId: _unlinked, ...rest } = n;
       const unlinked: Note = { ...rest, updatedAt: now };
       ops.push({ type: 'put', store: 'notes', value: unlinked });
+    }
+    for (const w of linkedWins) {
+      const { milestoneId: _unlinked, ...rest } = w;
+      const unlinked: Win = { ...rest, updatedAt: now };
+      ops.push({ type: 'put', store: 'wins', value: unlinked });
     }
     bypass.current = true;
     await write(ops);

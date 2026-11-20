@@ -12,7 +12,8 @@ import { ReminderDetail } from './screens/ReminderDetail';
 import { Reminders } from './screens/Reminders';
 import { NoteDetail, noteBackHref } from './screens/NoteDetail';
 import { Notes } from './screens/Notes';
-import { Placeholder } from './screens/Placeholder';
+import { WinDetail } from './screens/WinDetail';
+import { Wins } from './screens/Wins';
 import { Roadmap } from './screens/Roadmap';
 
 const NAV: { tab: Tab; label: string; Icon: FunctionComponent }[] = [
@@ -32,6 +33,8 @@ function subScreen(route: Route): { title: string; back: string; backLabel?: str
   if (route.tab === 'roadmap' && kind === 'new') return { title: 'New milestone', back: href('roadmap') };
   if (route.tab === 'reminders' && kind === 'r') return { title: 'Reminder', back: href('reminders') };
   if (route.tab === 'reminders' && kind === 'new') return { title: 'New reminder', back: href('reminders') };
+  if (route.tab === 'wins' && kind === 'w') return { title: 'Win', back: href('wins') };
+  if (route.tab === 'wins' && kind === 'new') return { title: 'New win', back: href('wins') };
   if (route.tab === 'notes' && kind === 'n') return { title: 'Note', back: href('notes') };
   if (route.tab === 'notes' && kind === 'new') {
     return { title: 'New note', back: noteBackHref(id), backLabel: id ? 'Milestone' : undefined };
@@ -56,10 +59,12 @@ function Screen(props: { route: Route; storage: string }) {
         return <ReminderDetail key={`new-${params[1]}`} newKind={params[1] as Reminder['kind']} />;
       }
       return <Reminders />;
+    case 'wins':
+      if (params[0] === 'w' && params[1]) return <WinDetail key={params[1]} id={params[1]} />;
+      if (params[0] === 'new') return <WinDetail key="new" isNew />;
+      return <Wins />;
     case 'more':
       return <More storage={props.storage} />;
-    default:
-      return <Placeholder which={tab} />;
   }
 }
 
