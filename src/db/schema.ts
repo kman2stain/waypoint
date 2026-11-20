@@ -99,4 +99,14 @@ export interface Reminder extends Base {
   alertMinutesBefore: number[];
   notes?: string;
   active: boolean;
+  /** When this reminder was last handed to the iPhone Calendar (.ics). */
+  calendarAddedAt?: ISODateTime;
 }
+
+export const REMINDER_KINDS = ['weekly_review', 'study_block', 'backup', 'one_off'] as const;
+export const REMINDER_KIND_LABELS: Record<Reminder['kind'], string> = {
+  weekly_review: 'Weekly review',
+  study_block: 'Study block',
+  backup: 'Backup reminder',
+  one_off: 'One-off task',
+};

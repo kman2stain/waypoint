@@ -10,10 +10,12 @@ import {
   summarize,
   type BackupFile,
 } from '../db/backup';
-import { useMeta } from '../db/hooks';
+import { Link } from '../components/Link';
+import { useAll, useMeta } from '../db/hooks';
+import type { Reminder } from '../db/schema';
 import { formatDate, toISODate } from '../lib/dates';
 import { shareFileCandidate, shareOrDownload } from '../lib/share';
-import { canLeave } from '../router';
+import { canLeave, href } from '../router';
 
 type Counts = ReturnType<typeof summarize>;
 
@@ -49,6 +51,7 @@ interface Prepared {
 
 export function BackupCard() {
   const meta = useMeta();
+  const reminders = useAll<Reminder>('reminders');
 
   // ---- export: step 1 prepares the file, step 2 (a separate tap) shares it,
   // because iOS only opens the share sheet straight from a tap.
@@ -156,6 +159,11 @@ export function BackupCard() {
             Restore from backup
           </button>
         </div>
+        {reminders && !reminders.some((r) => r.kind === 'backup') && (
+          <p class="small" style={{ margin: 0 }}>
+            <Link href={href('reminders', 'new', 'backup')}>Set a recurring backup reminder in your Calendar →</Link>
+          </p>
+        )}
         <input
           ref={fileInput}
           type="file"

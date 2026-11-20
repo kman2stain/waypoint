@@ -3,6 +3,7 @@ import { Checker, isObj, isStr, type Obj } from '../lib/validate';
 import { emitChange, openDB, request, STORES, transactionDone, type StoreName } from './db';
 import {
   MILESTONE_STATUSES,
+  REMINDER_KINDS,
   SCHEMA_VERSION,
   type Meta,
   type Milestone,
@@ -203,7 +204,8 @@ export function validateBackup(json: unknown): ParseResult {
   list('reminders', (r, p) => {
     base(r, p);
     c.str(r, 'title', p, { nonEmpty: true });
-    c.oneOf(r, 'kind', p, ['weekly_review', 'study_block', 'backup', 'one_off']);
+    c.oneOf(r, 'kind', p, REMINDER_KINDS);
+    c.dateTime(r, 'calendarAddedAt', p, { optional: true });
     if (!isStr(r.start) || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(r.start)) c.fail(`${p}.start`, 'must be like 2026-01-31T09:00');
     c.num(r, 'durationMin', p, { min: 1 });
     if (!isObj(r.repeat)) c.fail(`${p}.repeat`, 'is missing');

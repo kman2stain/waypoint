@@ -6,7 +6,10 @@ import { ensureSeeded } from './db/seed';
 import { requestPersistentStorage } from './lib/device';
 import { href, navigate, type Route, type Tab, useRoute } from './router';
 import { MilestoneDetail } from './screens/MilestoneDetail';
+import { REMINDER_KINDS, type Reminder } from './db/schema';
 import { More } from './screens/More';
+import { ReminderDetail } from './screens/ReminderDetail';
+import { Reminders } from './screens/Reminders';
 import { NoteDetail, noteBackHref } from './screens/NoteDetail';
 import { Notes } from './screens/Notes';
 import { Placeholder } from './screens/Placeholder';
@@ -27,6 +30,8 @@ function subScreen(route: Route): { title: string; back: string; backLabel?: str
   const [kind, id] = route.params;
   if (route.tab === 'roadmap' && kind === 'm') return { title: 'Milestone', back: href('roadmap') };
   if (route.tab === 'roadmap' && kind === 'new') return { title: 'New milestone', back: href('roadmap') };
+  if (route.tab === 'reminders' && kind === 'r') return { title: 'Reminder', back: href('reminders') };
+  if (route.tab === 'reminders' && kind === 'new') return { title: 'New reminder', back: href('reminders') };
   if (route.tab === 'notes' && kind === 'n') return { title: 'Note', back: href('notes') };
   if (route.tab === 'notes' && kind === 'new') {
     return { title: 'New note', back: noteBackHref(id), backLabel: id ? 'Milestone' : undefined };
@@ -45,6 +50,12 @@ function Screen(props: { route: Route; storage: string }) {
       if (params[0] === 'n' && params[1]) return <NoteDetail key={params[1]} id={params[1]} />;
       if (params[0] === 'new') return <NoteDetail key={`new-${params[1] ?? ''}`} isNew forMilestone={params[1]} />;
       return <Notes />;
+    case 'reminders':
+      if (params[0] === 'r' && params[1]) return <ReminderDetail key={params[1]} id={params[1]} />;
+      if (params[0] === 'new' && (REMINDER_KINDS as readonly string[]).includes(params[1] ?? '')) {
+        return <ReminderDetail key={`new-${params[1]}`} newKind={params[1] as Reminder['kind']} />;
+      }
+      return <Reminders />;
     case 'more':
       return <More storage={props.storage} />;
     default:
