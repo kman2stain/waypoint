@@ -21,9 +21,10 @@ When a new version is deployed, the app shows *"A new version is ready"*; tap **
 
 ## Backups
 
-Your phone is the only copy of your data. Use **More → Export** regularly (arrives in milestone M2)
-and keep the file somewhere safe, such as iCloud Drive. Never commit backup files to this repo;
-`.gitignore` already blocks the usual names.
+Your phone is the only copy of your data. Use **More → Export backup → Save to Files** regularly
+and keep the file in iCloud Drive. **More → Restore from backup** checks the file first, shows what it
+contains next to what's on the phone, and only replaces your data after you confirm.
+Never commit backup files to this repo; `.gitignore` already blocks the usual names.
 
 ## Deploy (GitHub Pages)
 
@@ -59,7 +60,7 @@ See [`docs/PROPOSAL.md`](docs/PROPOSAL.md) for the file structure, data schema a
 
 - [x] **M0** Scaffold: PWA shell, offline, icons, light/dark, deploy workflow
 - [x] **M1** Roadmap with seed data
-- [ ] **M2** Export / Import (with Save to Files prompt)
+- [x] **M2** Export / Import (with Save to Files prompt)
 - [ ] **M3** Notes
 - [ ] **M4** Reminders (.ics), including a backup reminder
 - [ ] **M5** Wins log + CV bullet

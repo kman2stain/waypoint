@@ -571,6 +571,36 @@ textarea {
   min-width: 7rem;
 }
 
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.error-text {
+  color: var(--danger);
+  margin: 0;
+}
+
+.ok-text {
+  color: var(--ok);
+  font-weight: 600;
+  margin: 0;
+}
+
+.warn-box {
+  padding: 0.75rem;
+  border-radius: 10px;
+  background: var(--warn-soft);
+  color: var(--text);
+}
+
+.error-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  overflow-wrap: anywhere;
+}
+
 /* ---------- Modal ---------- */
 .modal {
   width: min(28rem, calc(100vw - 32px));

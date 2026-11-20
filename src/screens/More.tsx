@@ -1,4 +1,5 @@
 import { isStandalone } from '../lib/device';
+import { BackupCard } from './BackupCard';
 
 export function More(props: { storage: string }) {
   const standalone = isStandalone();
@@ -6,6 +7,11 @@ export function More(props: { storage: string }) {
 
   return (
     <div>
+      <h2 class="section-title" style={{ marginTop: 0 }}>
+        Backup
+      </h2>
+      <BackupCard />
+
       <h2 class="section-title">This device</h2>
       <div class="card">
         <dl class="kv">
@@ -35,7 +41,7 @@ export function More(props: { storage: string }) {
             </ol>
             <p class="muted" style={{ marginBottom: 0 }}>
               The installed app and this Safari tab keep separate data, so anything entered here won't appear in the
-              app.
+              app. To move data across, export a backup here and restore it in the app.
             </p>
           </div>
         </>
@@ -45,7 +51,7 @@ export function More(props: { storage: string }) {
       <div class="card">
         <p style={{ margin: 0 }}>
           Everything you enter stays on this device. Waypoint has no account, no analytics and makes no network calls
-          except loading its own files. Backups (Export / Import) arrive in milestone M2.
+          except loading its own files. Backups go only where you save them.
         </p>
       </div>
     </div>

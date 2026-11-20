@@ -125,7 +125,7 @@ export async function write(ops: WriteOp[]): Promise<void> {
   emitChange(stores);
 }
 
-export const put = (store: StoreName, value: { id: string }) => write([{ type: 'put', store, value }]);
+export const put = <T extends { id: string }>(store: StoreName, value: T) => write([{ type: 'put', store, value }]);
 export const remove = (store: StoreName, key: string) => write([{ type: 'delete', store, key }]);
 
 /** Tests only: drop the connection and delete the database. */
