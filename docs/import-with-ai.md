@@ -16,7 +16,7 @@ backup is your undo.
 4. **Save the file it returns** (`waypoint-backup-import.json`) to Files. If it only shows
    the JSON as text, ask it to "attach that as a downloadable .json file".
 5. **Restore.** In Waypoint: **More → Restore from backup** and pick the new file. The
-   preview shows how many milestones, evidence items, notes and wins it contains. If that
+   preview shows how many milestones, evidence items, projects, notes and wins it contains. If that
    looks right, tap **Replace my data**.
 6. **If it says "Can't restore this file":** nothing was changed. Screenshot the list of
    problems, give it to the AI and say "Fix these errors in the file".
@@ -39,7 +39,7 @@ You are helping me load my real internship history into Waypoint, a personal car
    - `notes`: one or two plain sentences on where it stands.
    - `evidence`: proof that it happened, e.g. a confirmation email, written manager feedback, a delivered file, a demo, a signed document. Each item has the text, the date, and who confirmed it.
 2. If I've done important work that doesn't fit an existing milestone, add a new milestone to the phase it belongs in (`"kind": "task"`).
-3. Add a project for each named piece of work (e.g. a dashboard, an app, an automation), so notes and wins can link to it.
+3. Add a project for each named piece of work (e.g. a dashboard, an app, an automation), and set `projectId` on the milestones, notes and wins that belong to it. Only link a milestone to a project when it's clearly part of that work; each milestone can have one project.
 4. Add notes for things worth keeping: what I learned, decisions made, feedback I received, open questions, follow-ups. Link each note to a milestone and/or project where it fits, and give it tags.
 5. Add wins for concrete results I achieved.
 6. If you know when my plan started (the first day of the "This month" phase), set `data.meta.startDate`.
@@ -71,13 +71,14 @@ Restoring **replaces everything** in the app, so the file you return must contai
 - Timestamps (`createdAt`, `updatedAt`, `exportedAt`): full ISO time, e.g. `"2026-03-14T09:00:00.000Z"`. For new records, set `createdAt` to roughly when it happened and `updatedAt` to now. When you change an existing record, set its `updatedAt` to now.
 - New ids: short unique strings such as `"imp-note-001"`, `"imp-win-001"`, `"imp-ev-001"`, `"imp-proj-001"`, `"imp-ms-001"`. Never reuse an id within the same list.
 - Tags: lowercase, no `#`, hyphens instead of spaces, e.g. `"sql"`, `"power-bi"`, `"pl-300"`.
-- Links must point at records that exist in the file: a milestone's `phaseId` must be a phase `id`; a note's or win's `milestoneId` must be a milestone `id`; `projectId` must be a project `id`.
+- Links must point at records that exist in the file: a milestone's `phaseId` must be a phase `id`; a note's or win's `milestoneId` must be a milestone `id`; a milestone's, note's or win's `projectId` must be a project `id`.
 
 ### Record shapes (`?` means optional: leave it out if there's no value)
 
 ```
 milestone: { id, phaseId, order, title, kind: "task" | "gate", gateMonth? (gates only),
-             status, targetDate?, notes (text, may be ""), evidence: [...], createdAt, updatedAt }
+             status, targetDate?, notes (text, may be ""), evidence: [...], projectId?,
+             createdAt, updatedAt }
   New milestones: kind "task", order = one more than the highest order in that phase.
 
 evidence:  { id, text, date?, confirmedBy? }            text is required

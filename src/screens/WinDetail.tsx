@@ -14,8 +14,6 @@ import { newId } from '../lib/ids';
 import { formatNumber, parseUserNumber } from '../lib/numbers';
 import { href, navigate } from '../router';
 
-const BACK = href('wins');
-
 interface Draft {
   title: string;
   before: string;
@@ -71,7 +69,8 @@ function NumberField(props: { id: string; label: string; value: string; onInput:
   );
 }
 
-export function WinDetail(props: { id?: string; isNew?: boolean }) {
+export function WinDetail(props: { id?: string; isNew?: boolean; back?: string }) {
+  const back = props.back ?? href('wins');
   const wins = useAll<Win>('wins');
   const milestones = useAll<Milestone>('milestones');
   const phases = useAll<Phase>('phases');
@@ -102,7 +101,7 @@ export function WinDetail(props: { id?: string; isNew?: boolean }) {
   if (props.id && !existing) {
     return (
       <EmptyState title="Win not found">
-        <a href={BACK}>Back to Wins</a>
+        <a href={href('wins')}>Back to Wins</a>
       </EmptyState>
     );
   }
@@ -154,7 +153,7 @@ export function WinDetail(props: { id?: string; isNew?: boolean }) {
     const ops: WriteOp[] = [...projectOps, { type: 'put', store: 'wins', value: win }];
     await write(ops);
     bypass.current = true;
-    await navigate(BACK);
+    await navigate(back);
   };
 
   const remove = async () => {
@@ -168,7 +167,7 @@ export function WinDetail(props: { id?: string; isNew?: boolean }) {
     if (!ok) return;
     await write([{ type: 'delete', store: 'wins', key: existing.id }]);
     bypass.current = true;
-    await navigate(BACK);
+    await navigate(back);
   };
 
   const copy = async () => {
@@ -291,7 +290,7 @@ export function WinDetail(props: { id?: string; isNew?: boolean }) {
       )}
 
       <div class="save-bar">
-        <button type="button" class="btn" onClick={() => navigate(BACK)}>
+        <button type="button" class="btn" onClick={() => navigate(back)}>
           Cancel
         </button>
         <button type="submit" class="btn btn-primary" disabled={!valid || (!dirty && !!existing)}>

@@ -23,6 +23,7 @@ function describeCounts(c: Counts): string {
   const parts = [
     `${c.milestones} milestones`,
     `${c.evidence} evidence`,
+    `${c.projects} projects`,
     `${c.notes} notes`,
     `${c.reminders} reminders`,
     `${c.wins} wins`,

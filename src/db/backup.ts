@@ -66,6 +66,7 @@ export function summarize(data: BackupData) {
   return {
     phases: data.phases.length,
     milestones: data.milestones.length,
+    projects: data.projects.length,
     evidence: data.milestones.reduce((n, m) => n + m.evidence.length, 0),
     notes: data.notes.length,
     reminders: data.reminders.length,
@@ -171,6 +172,7 @@ export function validateBackup(json: unknown): ParseResult {
     c.oneOf(r, 'status', p, MILESTONE_STATUSES);
     c.date(r, 'targetDate', p, { optional: true });
     c.str(r, 'notes', p);
+    c.str(r, 'projectId', p, { optional: true });
     if (!Array.isArray(r.evidence)) c.fail(`${p}.evidence`, 'must be a list');
     else
       r.evidence.forEach((e, j) => {
@@ -229,6 +231,7 @@ export function validateBackup(json: unknown): ParseResult {
     const d = data as unknown as BackupData;
     (d.milestones ?? []).forEach((m, i) => {
       if (!ids.phases.has(m.phaseId)) c.fail(`data.milestones[${i}].phaseId`, 'points to a phase that is not in the backup');
+      if (m.projectId && !ids.projects.has(m.projectId)) c.fail(`data.milestones[${i}].projectId`, 'points to a missing project');
     });
     for (const key of ['notes', 'wins'] as const) {
       (d[key] ?? []).forEach((r: Note | Win, i: number) => {

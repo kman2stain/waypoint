@@ -58,6 +58,7 @@ export interface Milestone extends Base {
   targetDate?: ISODate;
   notes: string;
   evidence: Evidence[];
+  projectId?: ID;
 }
 
 export interface Project extends Base {

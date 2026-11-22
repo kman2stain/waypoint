@@ -20,7 +20,7 @@ waypoint/
 ├─ docs/PROPOSAL.md               this file
 ├─ src/
 │  ├─ main.tsx                    mount, ask navigator.storage.persist(), open DB, seed on first run
-│  ├─ app.tsx                     shell: bottom tab bar (Roadmap, Notes, Wins, Reminders, More)
+│  ├─ app.tsx                     shell: bottom tab bar (Roadmap, Projects, Notes, Reminders, Wins, More)
 │  ├─ router.ts                   tiny hash router
 │  ├─ styles.css                  tokens, light/dark via prefers-color-scheme, 44px targets, rem-based type
 │  ├─ db/
@@ -38,6 +38,7 @@ waypoint/
 │  ├─ components/                 Sheet, ConfirmDialog, Field, StatusPill, TagInput, EmptyState
 │  └─ screens/
 │     ├─ Roadmap.tsx, MilestoneDetail.tsx
+│     ├─ Projects.tsx, ProjectDetail.tsx
 │     ├─ Notes.tsx, NoteCapture.tsx
 │     ├─ Wins.tsx, WinEdit.tsx
 │     ├─ Reminders.tsx, ReminderEdit.tsx
@@ -55,8 +56,8 @@ Dates without time are `YYYY-MM-DD` strings. Nothing is ever deleted without a c
 |---|---|---|
 | `meta` | single record: `schemaVersion`, `startDate` (day 1 of the plan, set on first run, editable), `seededAt`, `lastExportAt` | — |
 | `phases` | `order` 1–4, `title` ("This month"), `monthsFrom`, `monthsTo` (0–1, 1–6, 6–18, 18–30) | `order` |
-| `milestones` | `phaseId`, `order`, `title`, `kind` (`task` \| `gate`), `status` (`not_started` \| `in_progress` \| `done`), `targetDate?`, `notes`, `evidence: Evidence[]` | `phaseId`, `status` |
-| `projects` | `name`, `archived` (lightweight, created inline from Notes/Wins) | `name` |
+| `milestones` | `phaseId`, `order`, `title`, `kind` (`task` \| `gate`), `status` (`not_started` \| `in_progress` \| `done`), `targetDate?`, `notes`, `evidence: Evidence[]`, `projectId?` | `phaseId`, `status` |
+| `projects` | `name`, `archived` (created in Projects, or inline from Milestones/Notes/Wins) | `name` |
 | `notes` | `text`, `tags: string[]`, `milestoneId?`, `projectId?` | `createdAt`, multiEntry `tags` |
 | `wins` | `title`, `before?`, `after?` (numbers, only if typed), `unit?`, `date?`, `source?` (source / confirmed by), `context?`, `milestoneId?`, `projectId?` | `date` |
 | `reminders` | `title`, `kind` (`weekly_review` \| `study_block` \| `backup` \| `one_off`), `start` (local datetime), `durationMin`, `repeat` `{ freq: none\|daily\|weekly\|monthly, interval, byDay?, until? }`, `alertMinutesBefore: number[]`, `notes?`, `active` | — |
@@ -69,6 +70,8 @@ interface Evidence { id: string; text: string; date?: string; confirmedBy?: stri
 
 Notes on choices:
 - **Evidence is a list**, not one field, because a milestone like "collect written impact confirmations" naturally has several.
+- **A project's view** shows milestones linked to it, plus notes and wins linked to it directly or through one of those milestones. A note's or win's own `projectId` takes priority. Deleting a project only unlinks.
+- **`schemaVersion` stays 1** with `milestones.projectId`: the field is optional, so older backups still restore.
 - **Decision gates** (month 12, month 24) are milestones with `kind: 'gate'` in phases 3 and 4. With `meta.startDate` set, gates and phases show a real calendar month.
 - **Wins store numbers as numbers** and the CV builder only interpolates fields that exist. No percentages, no rounding, no direction words it can't justify. No numbers at all → a plain line with no placeholders; only one of the two → the other becomes `[BEFORE: add number]` / `[AFTER: add number]`.
 - **Reminders .ics**: one VEVENT per reminder with a stable `UID` (`<id>@waypoint`), floating local time, RRULE from `repeat`, one VALARM per `alertMinutesBefore`.

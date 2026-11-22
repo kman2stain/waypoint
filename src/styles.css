@@ -148,7 +148,7 @@ textarea {
   inset: auto 0 0 0;
   z-index: 20;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   padding-bottom: var(--safe-bottom);
   background: color-mix(in srgb, var(--surface) 94%, transparent);
   backdrop-filter: saturate(1.4) blur(12px);
@@ -166,9 +166,9 @@ textarea {
   padding: 6px 2px;
   color: var(--muted);
   text-decoration: none;
-  /* Capped like native iOS tab bars so five labels always fit; page content
-     itself scales without limit. */
-  font-size: min(0.72rem, 14px);
+  /* Capped like native iOS tab bars, and by screen width so six labels always
+     fit; page content itself scales without limit. */
+  font-size: min(0.72rem, 2.95vw, 14px);
   font-weight: 600;
   white-space: nowrap;
 }
@@ -438,6 +438,24 @@ ol.steps li + li {
 
 .add-btn {
   margin-top: 0.25rem;
+}
+
+/* ---------- Projects ---------- */
+.project-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.project-head h2 {
+  min-width: 0;
+  font-size: 1.2rem;
+  overflow-wrap: anywhere;
+}
+
+.project-progress {
+  margin-bottom: 0;
 }
 
 /* ---------- Forms ---------- */

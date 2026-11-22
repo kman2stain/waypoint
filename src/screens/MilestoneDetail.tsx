@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { confirmAction } from '../components/ConfirmDialog';
 import { EmptyState } from '../components/EmptyState';
 import { Link } from '../components/Link';
+import { ProjectSelect, projectChoiceValid, resolveProject } from '../components/LinkFields';
 import { useLeaveGuard } from '../components/useLeaveGuard';
-import { put, write, type WriteOp } from '../db/db';
+import { write, type WriteOp } from '../db/db';
 import { useAll } from '../db/hooks';
 import {
   MILESTONE_STATUSES,
@@ -12,6 +13,7 @@ import {
   type Milestone,
   type Note,
   type Phase,
+  type Project,
   type Win,
 } from '../db/schema';
 import { isISODate, todayISO } from '../lib/dates';
@@ -19,9 +21,10 @@ import { formatDateTime } from '../lib/format';
 import { newId } from '../lib/ids';
 import { href, navigate } from '../router';
 
-type Draft = Pick<Milestone, 'title' | 'status' | 'targetDate' | 'notes' | 'evidence'>;
-
-const BACK = href('roadmap');
+type Draft = Pick<Milestone, 'title' | 'status' | 'targetDate' | 'notes' | 'evidence'> & {
+  projectId: string; // '' = none, NEW_PROJECT = create
+  newProjectName: string;
+};
 
 function toDraft(m: Milestone): Draft {
   return {
@@ -29,11 +32,13 @@ function toDraft(m: Milestone): Draft {
     status: m.status,
     targetDate: m.targetDate,
     notes: m.notes,
+    projectId: m.projectId ?? '',
+    newProjectName: '',
     evidence: m.evidence.map((e) => ({ ...e })),
   };
 }
 
-const EMPTY: Draft = { title: '', status: 'not_started', targetDate: undefined, notes: '', evidence: [] };
+const EMPTY: Draft = { title: '', status: 'not_started', targetDate: undefined, notes: '', evidence: [], projectId: '', newProjectName: '' };
 
 /** Remove empty optional fields so saved records stay tidy. */
 function cleanEvidence(e: Evidence): Evidence {
@@ -43,7 +48,9 @@ function cleanEvidence(e: Evidence): Evidence {
   return out;
 }
 
-export function MilestoneDetail(props: { id?: string; newInPhase?: string }) {
+export function MilestoneDetail(props: { id?: string; newInPhase?: string; back?: string }) {
+  const back = props.back ?? href('roadmap');
+  const projects = useAll<Project>('projects');
   const milestones = useAll<Milestone>('milestones');
   const phases = useAll<Phase>('phases');
   const notes = useAll<Note>('notes');
@@ -68,11 +75,11 @@ export function MilestoneDetail(props: { id?: string; newInPhase?: string }) {
   const dirty = !!draft && JSON.stringify(draft) !== JSON.stringify(original.current);
   const bypass = useLeaveGuard(dirty, 'milestone');
 
-  if (!milestones || !phases || !notes || !wins) return <p class="muted">Loading…</p>;
+  if (!milestones || !phases || !notes || !wins || !projects) return <p class="muted">Loading…</p>;
   if ((props.id && !existing) || (props.newInPhase && !phase)) {
     return (
       <EmptyState title="Milestone not found">
-        <a href={BACK}>Back to Roadmap</a>
+        <a href={href('roadmap')}>Back to Roadmap</a>
       </EmptyState>
     );
   }
@@ -86,11 +93,13 @@ export function MilestoneDetail(props: { id?: string; newInPhase?: string }) {
     update((d) => ({ ...d, evidence: d.evidence.map((e) => (e.id === id ? { ...e, ...patch } : e)) }));
 
   const evidenceValid = draft.evidence.every((e) => e.text.trim() && (!e.date || isISODate(e.date)));
-  const valid = draft.title.trim().length > 0 && (!draft.targetDate || isISODate(draft.targetDate)) && evidenceValid;
+  const valid = draft.title.trim().length > 0 && (!draft.targetDate || isISODate(draft.targetDate)) && evidenceValid &&
+    projectChoiceValid(draft.projectId, draft.newProjectName);
 
   const save = async () => {
     if (!valid) return;
     const now = new Date().toISOString();
+    const { projectId, ops } = resolveProject(draft.projectId, draft.newProjectName, projects, now);
     const siblings = milestones.filter((m) => m.phaseId === phaseId);
     const record: Milestone = {
       ...(existing ?? {
@@ -109,9 +118,12 @@ export function MilestoneDetail(props: { id?: string; newInPhase?: string }) {
     if (draft.targetDate) record.targetDate = draft.targetDate;
     else delete record.targetDate;
 
+    if (projectId) record.projectId = projectId;
+    else delete record.projectId;
+
     bypass.current = true;
-    await put('milestones', record);
-    await navigate(BACK);
+    await write([...ops, { type: 'put', store: 'milestones', value: record }]);
+    await navigate(back);
   };
 
   const linkedNotes = existing
@@ -149,7 +161,7 @@ export function MilestoneDetail(props: { id?: string; newInPhase?: string }) {
     }
     bypass.current = true;
     await write(ops);
-    await navigate(BACK);
+    await navigate(back);
   };
 
   return (
@@ -202,6 +214,15 @@ export function MilestoneDetail(props: { id?: string; newInPhase?: string }) {
           )}
         </div>
       </div>
+
+      <ProjectSelect
+        id="milestone-project"
+        value={draft.projectId}
+        newName={draft.newProjectName}
+        projects={projects}
+        onChange={(v) => set('projectId', v)}
+        onNewName={(v) => set('newProjectName', v)}
+      />
 
       <label class="field">
         <span class="field-label">Notes</span>
@@ -298,7 +319,7 @@ export function MilestoneDetail(props: { id?: string; newInPhase?: string }) {
       )}
 
       <div class="save-bar">
-        <button type="button" class="btn" onClick={() => navigate(BACK)}>
+        <button type="button" class="btn" onClick={() => navigate(back)}>
           Cancel
         </button>
         <button type="submit" class="btn btn-primary" disabled={!valid || (!dirty && !!existing)}>

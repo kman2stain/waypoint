@@ -3,19 +3,21 @@ import { Modal } from '../components/Modal';
 import { Chevron, StatusIcon } from '../components/StatusIcon';
 import { put } from '../db/db';
 import { useAll, useMeta } from '../db/hooks';
-import { STATUS_LABELS, type Meta, type Milestone, type Phase } from '../db/schema';
+import { STATUS_LABELS, type Meta, type Milestone, type Phase, type Project } from '../db/schema';
 import { addMonths, formatDate, formatMonth, isISODate, monthsSince, todayISO } from '../lib/dates';
 import { href } from '../router';
 
 export function Roadmap() {
   const phases = useAll<Phase>('phases');
   const milestones = useAll<Milestone>('milestones');
+  const projects = useAll<Project>('projects');
   const meta = useMeta();
 
-  if (!phases || !milestones) return <p class="muted">Loading…</p>;
+  if (!phases || !milestones || !projects) return <p class="muted">Loading…</p>;
 
   const start = meta?.startDate;
   const elapsed = start ? monthsSince(start) : undefined;
+  const projName = new Map(projects.map((p) => [p.id, p.name]));
   const sortedPhases = [...phases].sort((a, b) => a.order - b.order);
 
   return (
@@ -66,7 +68,7 @@ export function Roadmap() {
                         </span>
                       )}
                       <span class="row-title">{m.title}</span>
-                      <span class="row-sub">{rowSub(m)}</span>
+                      <span class="row-sub">{rowSub(m, m.projectId ? projName.get(m.projectId) : undefined)}</span>
                     </span>
                     <Chevron />
                   </a>
@@ -83,10 +85,11 @@ export function Roadmap() {
   );
 }
 
-function rowSub(m: Milestone): string {
+function rowSub(m: Milestone, project?: string): string {
   const parts: string[] = [STATUS_LABELS[m.status]];
   if (m.targetDate) parts.push(`Target ${formatDate(m.targetDate)}`);
   if (m.evidence.length) parts.push(`${m.evidence.length} evidence`);
+  if (project) parts.push(project);
   return parts.join(' · ');
 }
 

@@ -42,6 +42,7 @@ async function aiEditedFile() {
     updatedAt: NOW,
   });
   d.projects.push({ id: 'imp-proj-001', name: 'Inventory dashboard', archived: false, createdAt: '2026-09-10T09:00:00.000Z', updatedAt: NOW });
+  d.milestones.find((m: Milestone) => m.id === 'imp-ms-001').projectId = 'imp-proj-001';
   d.notes.push({
     id: 'imp-note-001',
     text: 'Manager asked for a weekly refresh instead of daily.',
@@ -102,6 +103,8 @@ describe('AI import file (docs/import-with-ai.md)', () => {
     expect(await check((b) => (b.data.wins[0].before = '6'))).toBe(false); // number as text
     expect(await check((b) => (b.data.notes[0].projectId = null))).toBe(false); // null
     expect(await check((b) => (b.data.notes[0].milestoneId = 'does-not-exist'))).toBe(false); // broken link
+    expect(await check((b) => (b.data.milestones[0].projectId = 'does-not-exist'))).toBe(false); // broken project link
+    expect(await check((b) => (b.data.milestones[0].projectId = null))).toBe(false); // null project
     expect(await check((b) => (b.data.milestones[0].status = 'completed'))).toBe(false); // wrong status word
     expect(await check((b) => (b.data.milestones[0].targetDate = '14/03/2026'))).toBe(false); // wrong date format
     expect(await check((b) => b.data.wins.push({ ...b.data.wins[0] }))).toBe(false); // reused id

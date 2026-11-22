@@ -1,7 +1,8 @@
-// Shared "link to a milestone / project" fields for Notes and Wins.
+// Shared "link to a milestone / project" fields for Milestones, Notes and Wins.
 import type { WriteOp } from '../db/db';
 import type { Milestone, Phase, Project } from '../db/schema';
 import { newId } from '../lib/ids';
+import { findProjectByName } from '../lib/projects';
 
 export const NEW_PROJECT = '__new__';
 
@@ -39,7 +40,7 @@ export function ProjectSelect(props: {
   onChange: (id: string) => void;
   onNewName: (name: string) => void;
 }) {
-  const active = props.projects.filter((p) => !p.archived).sort((a, b) => a.name.localeCompare(b.name));
+  const active = props.projects.filter((p) => !p.archived || p.id === props.value).sort((a, b) => a.name.localeCompare(b.name));
   return (
     <div class="field">
       <label class="field-label" for={props.id}>
@@ -85,7 +86,7 @@ export function resolveProject(
 ): { projectId?: string; ops: WriteOp[] } {
   if (value !== NEW_PROJECT) return { projectId: value || undefined, ops: [] };
   const name = newName.trim();
-  const same = projects.find((p) => p.name.toLowerCase() === name.toLowerCase());
+  const same = findProjectByName(name, projects);
   if (same) return { projectId: same.id, ops: [] };
   const project: Project = { id: newId(), name, archived: false, createdAt: now, updatedAt: now };
   return { projectId: project.id, ops: [{ type: 'put', store: 'projects', value: project }] };

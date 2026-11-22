@@ -25,13 +25,13 @@ export function noteBackHref(forMilestone?: string): string {
   return forMilestone ? href('roadmap', 'm', forMilestone) : href('notes');
 }
 
-export function NoteDetail(props: { id?: string; isNew?: boolean; forMilestone?: string }) {
+export function NoteDetail(props: { id?: string; isNew?: boolean; forMilestone?: string; back?: string }) {
   const notes = useAll<Note>('notes');
   const milestones = useAll<Milestone>('milestones');
   const phases = useAll<Phase>('phases');
   const projects = useAll<Project>('projects');
   const existing = props.id ? notes?.find((n) => n.id === props.id) : undefined;
-  const back = noteBackHref(props.forMilestone);
+  const back = props.back ?? noteBackHref(props.forMilestone);
 
   const [draft, setDraft] = useState<Draft | null>(null);
   const original = useRef('');

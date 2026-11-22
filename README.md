@@ -1,6 +1,6 @@
 # Waypoint
 
-A personal career-tracking app for one person: roadmap, notes, wins log and reminders.
+A personal career-tracking app for one person: roadmap, projects, notes, wins log and reminders.
 It runs in Safari and installs on an iPhone home screen (PWA). There is no backend.
 
 **Your data never leaves your phone.** It lives in the browser's storage (IndexedDB) on the device.
@@ -68,4 +68,5 @@ See [`docs/PROPOSAL.md`](docs/PROPOSAL.md) for the file structure, data schema a
 - [x] **M3** Notes
 - [x] **M4** Reminders (.ics), including a backup reminder
 - [x] **M5** Wins log + CV bullet (v1 complete)
+- [x] **1.1** Projects tab, projects on milestones
 - [ ] Later: Progress, Opportunity test, AI update, optional GitHub sync

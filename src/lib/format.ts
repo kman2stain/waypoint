@@ -5,3 +5,7 @@ export function formatDateTime(iso: string, now: Date = new Date()): string {
   if (d.getFullYear() !== now.getFullYear()) opts.year = 'numeric';
   return d.toLocaleString(undefined, opts);
 }
+
+export function plural(n: number, word: string): string {
+  return `${n} ${word}${n === 1 ? '' : 's'}`;
+}

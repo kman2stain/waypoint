@@ -1,10 +1,10 @@
 import type { FunctionComponent } from 'preact';
 import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
-import { MoreIcon, NotesIcon, RemindersIcon, RoadmapIcon, WinsIcon } from './components/Icons';
+import { MoreIcon, NotesIcon, ProjectsIcon, RemindersIcon, RoadmapIcon, WinsIcon } from './components/Icons';
 import { UpdateToast } from './components/UpdateToast';
 import { ensureSeeded } from './db/seed';
 import { requestPersistentStorage } from './lib/device';
-import { href, navigate, type Route, type Tab, useRoute } from './router';
+import { href, navigate, originProject, type Route, type Tab, useRoute } from './router';
 import { MilestoneDetail } from './screens/MilestoneDetail';
 import { REMINDER_KINDS, type Reminder } from './db/schema';
 import { More } from './screens/More';
@@ -14,10 +14,13 @@ import { NoteDetail, noteBackHref } from './screens/NoteDetail';
 import { Notes } from './screens/Notes';
 import { WinDetail } from './screens/WinDetail';
 import { Wins } from './screens/Wins';
+import { ProjectDetail } from './screens/ProjectDetail';
+import { Projects } from './screens/Projects';
 import { Roadmap } from './screens/Roadmap';
 
 const NAV: { tab: Tab; label: string; Icon: FunctionComponent }[] = [
   { tab: 'roadmap', label: 'Roadmap', Icon: RoadmapIcon },
+  { tab: 'projects', label: 'Projects', Icon: ProjectsIcon },
   { tab: 'notes', label: 'Notes', Icon: NotesIcon },
   { tab: 'reminders', label: 'Reminders', Icon: RemindersIcon },
   { tab: 'wins', label: 'Wins', Icon: WinsIcon },
@@ -29,6 +32,12 @@ const STORAGE_LABELS = { persistent: 'Persistent', 'best-effort': 'Best effort',
 /** Sub-screen title + back target, or null for a tab's root screen. */
 function subScreen(route: Route): { title: string; back: string; backLabel?: string } | null {
   const [kind, id] = route.params;
+  const from = originProject(route);
+  if (from) {
+    const title = route.tab === 'roadmap' ? 'Milestone' : route.tab === 'notes' ? 'Note' : 'Win';
+    return { title, back: href('projects', 'p', from), backLabel: 'Project' };
+  }
+  if (route.tab === 'projects' && kind === 'p') return { title: 'Project', back: href('projects') };
   if (route.tab === 'roadmap' && kind === 'm') return { title: 'Milestone', back: href('roadmap') };
   if (route.tab === 'roadmap' && kind === 'new') return { title: 'New milestone', back: href('roadmap') };
   if (route.tab === 'reminders' && kind === 'r') return { title: 'Reminder', back: href('reminders') };
@@ -44,13 +53,18 @@ function subScreen(route: Route): { title: string; back: string; backLabel?: str
 
 function Screen(props: { route: Route; storage: string }) {
   const { tab, params } = props.route;
+  const from = originProject(props.route);
+  const back = from ? href('projects', 'p', from) : undefined;
   switch (tab) {
     case 'roadmap':
-      if (params[0] === 'm' && params[1]) return <MilestoneDetail key={params[1]} id={params[1]} />;
+      if (params[0] === 'm' && params[1]) return <MilestoneDetail key={params[1]} id={params[1]} back={back} />;
       if (params[0] === 'new' && params[1]) return <MilestoneDetail key={`new-${params[1]}`} newInPhase={params[1]} />;
       return <Roadmap />;
+    case 'projects':
+      if (params[0] === 'p' && params[1]) return <ProjectDetail key={params[1]} id={params[1]} />;
+      return <Projects />;
     case 'notes':
-      if (params[0] === 'n' && params[1]) return <NoteDetail key={params[1]} id={params[1]} />;
+      if (params[0] === 'n' && params[1]) return <NoteDetail key={params[1]} id={params[1]} back={back} />;
       if (params[0] === 'new') return <NoteDetail key={`new-${params[1] ?? ''}`} isNew forMilestone={params[1]} />;
       return <Notes />;
     case 'reminders':
@@ -60,7 +74,7 @@ function Screen(props: { route: Route; storage: string }) {
       }
       return <Reminders />;
     case 'wins':
-      if (params[0] === 'w' && params[1]) return <WinDetail key={params[1]} id={params[1]} />;
+      if (params[0] === 'w' && params[1]) return <WinDetail key={params[1]} id={params[1]} back={back} />;
       if (params[0] === 'new') return <WinDetail key="new" isNew />;
       return <Wins />;
     case 'more':
