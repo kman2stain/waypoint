@@ -4,7 +4,7 @@ import { Modal } from '../components/Modal';
 import { Chevron, StatusIcon } from '../components/StatusIcon';
 import { put } from '../db/db';
 import { useAll, useMeta } from '../db/hooks';
-import { STATUS_LABELS, type Meta, type Milestone, type Phase, type Project } from '../db/schema';
+import { STATUS_LABELS, type Meta, type Milestone, type Phase, type Project, type Win } from '../db/schema';
 import { addMonths, formatDate, formatMonth, isISODate, monthsSince, todayISO } from '../lib/dates';
 import { href } from '../router';
 
@@ -12,6 +12,7 @@ export function Roadmap() {
   const phases = useAll<Phase>('phases');
   const milestones = useAll<Milestone>('milestones');
   const projects = useAll<Project>('projects');
+  const wins = useAll<Win>('wins');
   const meta = useMeta();
   const [openPhases, setOpenPhases] = useState(loadOpenPhases);
   const togglePhase = (id: string, open: boolean) => {
@@ -37,7 +38,14 @@ export function Roadmap() {
     <div>
       <StartDate meta={meta}>
         {start && elapsed !== undefined && (
-          <Overview start={start} elapsed={elapsed} phases={sortedPhases} milestones={milestones} />
+          <Overview
+            start={start}
+            elapsed={elapsed}
+            phases={sortedPhases}
+            milestones={milestones}
+            wins={wins?.length ?? 0}
+            projects={projects.filter((p) => !p.archived).length}
+          />
         )}
       </StartDate>
 
@@ -137,7 +145,14 @@ function loadOpenPhases(): Record<string, boolean> {
   }
 }
 
-function Overview(props: { start: string; elapsed: number; phases: Phase[]; milestones: Milestone[] }) {
+function Overview(props: {
+  start: string;
+  elapsed: number;
+  phases: Phase[];
+  milestones: Milestone[];
+  wins: number;
+  projects: number;
+}) {
   const { start, elapsed, phases, milestones } = props;
   const total = milestones.length;
   const done = milestones.filter((m) => m.status === 'done').length;
@@ -154,19 +169,40 @@ function Overview(props: { start: string; elapsed: number; phases: Phase[]; mile
 
   return (
     <div class="overview">
-      <div class="overview-head">
-        <span class="overview-when">{when}</span>
-        <span class="overview-pct">{total ? Math.round((done / total) * 100) : 0}%</span>
+      <span class="overview-when">{when}</span>
+
+      {(props.wins > 0 || props.projects > 0) && (
+        <a class="overview-delivered" href={href('wins')}>
+          <span class="overview-delivered-label">Delivered so far</span>
+          <span class="overview-delivered-nums">
+            <span>
+              <strong>{props.wins}</strong> win{props.wins === 1 ? '' : 's'}
+            </span>
+            <span>
+              <strong>{props.projects}</strong> project{props.projects === 1 ? '' : 's'}
+            </span>
+          </span>
+          <Chevron />
+        </a>
+      )}
+
+      <div class="overview-plan-head">
+        <span class="muted small">Plan milestones</span>
+        <span class="muted small">
+          {done} of {total} done
+        </span>
       </div>
       <div
         class="progress progress-lg"
         role="progressbar"
-        aria-label="Overall progress"
+        aria-label="Plan milestones done"
         aria-valuemin={0}
         aria-valuemax={total}
         aria-valuenow={done}
+        aria-valuetext={`${done} of ${total} done, ${active} in progress`}
       >
         <span style={{ width: total ? `${(done / total) * 100}%` : '0%' }} />
+        <span class="progress-partial" style={{ width: total ? `${(active / total) * 100}%` : '0%' }} />
       </div>
       <dl class="overview-stats">
         <div>
