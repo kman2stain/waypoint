@@ -3,9 +3,10 @@
 A personal career-tracking app for one person: roadmap, projects, notes, wins log and reminders.
 It runs in Safari and installs on an iPhone home screen (PWA). There is no backend.
 
-**Your data never leaves your phone.** It lives in the browser's storage (IndexedDB) on the device.
-This repository is public and contains only the app and a generic example roadmap: no personal data,
-no secrets, no analytics, no third-party network calls.
+**Your data stays on your phone** in the browser's storage (IndexedDB), unless you turn on optional
+cloud sync to your own private GitHub repo (see below). This repository is public and contains only the
+app and a generic example roadmap: no personal data, no secrets, no analytics. The only third-party
+network calls are to GitHub, and only when cloud sync is on.
 
 ## Install on iPhone
 
@@ -29,6 +30,12 @@ Never commit backup files to this repo; `.gitignore` already blocks the usual na
 Already done a lot before you started using the app? See
 [`docs/import-with-ai.md`](docs/import-with-ai.md) for a prompt that has an AI assistant fill in
 your milestones, evidence, notes and wins in a backup file you then restore.
+
+## Cloud sync (optional)
+
+Keep your data in a JSON file in a **private** GitHub repo: the app syncs automatically, and an AI
+assistant with access to that repo can update your data directly. Setup takes a few minutes: see
+[`docs/cloud-sync.md`](docs/cloud-sync.md).
 
 ## Deploy (GitHub Pages)
 
@@ -69,4 +76,5 @@ See [`docs/PROPOSAL.md`](docs/PROPOSAL.md) for the file structure, data schema a
 - [x] **M4** Reminders (.ics), including a backup reminder
 - [x] **M5** Wins log + CV bullet (v1 complete)
 - [x] **1.1** Projects tab, projects on milestones
-- [ ] Later: Progress, Opportunity test, AI update, optional GitHub sync
+- [x] **1.2** Optional cloud sync to a private GitHub repo
+- [ ] Later: Progress, Opportunity test

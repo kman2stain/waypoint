@@ -1,9 +1,13 @@
 import { isStandalone } from '../lib/device';
+import { getConfig } from '../sync/sync';
 import { BackupCard } from './BackupCard';
+import { SyncCard, useSyncStatus } from './SyncCard';
 
 export function More(props: { storage: string }) {
   const standalone = isStandalone();
   const online = navigator.onLine;
+  const sync = useSyncStatus();
+  const syncing = sync.state !== 'off' && !!getConfig();
 
   return (
     <div>
@@ -11,6 +15,9 @@ export function More(props: { storage: string }) {
         Backup
       </h2>
       <BackupCard />
+
+      <h2 class="section-title">Cloud sync</h2>
+      <SyncCard />
 
       <h2 class="section-title">This device</h2>
       <div class="card">
@@ -50,8 +57,9 @@ export function More(props: { storage: string }) {
       <h2 class="section-title">Privacy</h2>
       <div class="card">
         <p style={{ margin: 0 }}>
-          Everything you enter stays on this device. Waypoint has no account, no analytics and makes no network calls
-          except loading its own files. Backups go only where you save them.
+          {syncing
+            ? 'Cloud sync is on: your data is kept on this device and copied to your private GitHub repo. Waypoint talks only to GitHub, with your token. No analytics. Backups go only where you save them.'
+            : 'Everything you enter stays on this device. Waypoint has no account, no analytics and makes no network calls except loading its own files (and GitHub, if you turn on cloud sync). Backups go only where you save them.'}
         </p>
       </div>
     </div>

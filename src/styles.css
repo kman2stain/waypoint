@@ -475,6 +475,7 @@ ol.steps li + li {
 }
 
 input[type='text'],
+input[type='password'],
 input[type='date'],
 input[type='search'],
 textarea,

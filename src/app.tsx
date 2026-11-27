@@ -17,6 +17,7 @@ import { Wins } from './screens/Wins';
 import { ProjectDetail } from './screens/ProjectDetail';
 import { Projects } from './screens/Projects';
 import { Roadmap } from './screens/Roadmap';
+import { startAutoSync } from './sync/sync';
 
 const NAV: { tab: Tab; label: string; Icon: FunctionComponent }[] = [
   { tab: 'roadmap', label: 'Roadmap', Icon: RoadmapIcon },
@@ -95,10 +96,15 @@ export function App() {
 
   useEffect(() => {
     requestPersistentStorage().then((s) => setStorage(STORAGE_LABELS[s]));
+    let stopSync: (() => void) | undefined;
     ensureSeeded()
-      .then(() => setReady(true))
+      .then(() => {
+        setReady(true);
+        stopSync = startAutoSync(__APP_VERSION__);
+      })
       .catch((e: unknown) => setDbError(e instanceof Error ? e.message : String(e)));
     if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+    return () => stopSync?.();
   }, []);
 
   const title = sub?.title ?? current.label;
