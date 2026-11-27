@@ -77,4 +77,5 @@ See [`docs/PROPOSAL.md`](docs/PROPOSAL.md) for the file structure, data schema a
 - [x] **M5** Wins log + CV bullet (v1 complete)
 - [x] **1.1** Projects tab, projects on milestones
 - [x] **1.2** Optional cloud sync to a private GitHub repo
+- [x] **1.3** Polish: roadmap overview, collapsible phases, compact wins, roomier forms
 - [ ] Later: Progress, Opportunity test

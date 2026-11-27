@@ -217,25 +217,23 @@ export function WinDetail(props: { id?: string; isNew?: boolean; back?: string }
         />
       </label>
 
-      <div class="two-col">
-        <label class="field">
-          <span class="field-label">
-            Date <span class="muted">(optional)</span>
-          </span>
-          <input type="date" value={draft.date} onInput={(e) => set('date', e.currentTarget.value)} />
-        </label>
-        <label class="field">
-          <span class="field-label">
-            Source / confirmed by <span class="muted">(optional)</span>
-          </span>
-          <input
-            type="text"
-            placeholder="e.g. Ops manager, email 12 Mar"
-            value={draft.source}
-            onInput={(e) => set('source', e.currentTarget.value)}
-          />
-        </label>
-      </div>
+      <label class="field">
+        <span class="field-label">
+          Date <span class="muted">(optional)</span>
+        </span>
+        <input type="date" value={draft.date} onInput={(e) => set('date', e.currentTarget.value)} />
+      </label>
+      <label class="field">
+        <span class="field-label">
+          Source / confirmed by <span class="muted">(optional)</span>
+        </span>
+        <input
+          type="text"
+          placeholder="e.g. Ops manager, email 12 Mar"
+          value={draft.source}
+          onInput={(e) => set('source', e.currentTarget.value)}
+        />
+      </label>
 
       {hasNumbers && !draft.source.trim() && (
         <p class="muted small" style={{ margin: 0 }}>
@@ -264,10 +262,10 @@ export function WinDetail(props: { id?: string; isNew?: boolean; back?: string }
         <h2 class="section-title" style={{ margin: 0 }}>
           CV bullet preview
         </h2>
-        <p style={{ margin: 0 }}>
+        <p class="cv-preview">
           <BulletText text={bullet.text} />
         </p>
-        <p class="muted small" style={{ margin: 0 }}>
+        <p class="muted small">
           Built only from the fields above; nothing is estimated. Leave both numbers empty for a win without a before and
           after. If you fill in only one, the other stays as a highlighted placeholder.
         </p>

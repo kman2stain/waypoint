@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'preact/hooks';
-import { BulletText } from '../components/BulletText';
 import { EmptyState } from '../components/EmptyState';
 import { Link } from '../components/Link';
 import { useAll } from '../db/hooks';
@@ -35,6 +34,7 @@ export function Wins() {
         ? `Copied. Fill in the ${placeholders === 1 ? 'placeholder' : `${placeholders} placeholders`} before using it.`
         : 'Copied.';
     setCopied({ id, msg });
+    setTimeout(() => setCopied((c) => (c?.id === id && c.msg === msg ? null : c)), placeholders ? 6000 : 2500);
   };
 
   const all = sorted.map((w) => buildCvBullet(w));
@@ -44,8 +44,8 @@ export function Wins() {
   return (
     <div>
       <p class="muted" style={{ marginTop: 0 }}>
-        Log results as they happen, with the real numbers and who confirmed them. "Copy as CV bullet" only ever uses what
-        you typed.
+        Log results as they happen, with the real numbers and who confirmed them. CV bullets only ever use what you
+        typed.
       </p>
 
       <Link class="btn btn-primary" href={href('wins', 'new')}>
@@ -64,42 +64,49 @@ export function Wins() {
           <ul class="win-list">
             {sorted.map((w, i) => {
               const bullet = all[i];
+              const hasNumbers = w.before !== undefined || w.after !== undefined;
+              const where = [w.projectId ? projName.get(w.projectId) : null, w.milestoneId ? msTitle.get(w.milestoneId) : null]
+                .filter(Boolean)
+                .join(' · ');
               return (
                 <li key={w.id} class="win-card">
                   <Link class="win-main" href={href('wins', 'w', w.id)}>
-                    <span class="row-title">
-                      <strong>{w.title}</strong>
+                    <span class="win-top">
+                      <strong class="win-title">{w.title}</strong>
+                      {w.date && <span class="win-date">{formatDate(w.date)}</span>}
                     </span>
-                    {(w.before !== undefined || w.after !== undefined) && (
+                    {hasNumbers && (
                       <span class="win-numbers">
-                        {w.before !== undefined ? formatNumber(w.before) : '?'} → {w.after !== undefined ? formatNumber(w.after) : '?'}
-                        {w.unit ? ` ${w.unit}` : ''}
+                        {w.before !== undefined ? formatNumber(w.before) : '?'}
+                        <span aria-label="to"> → </span>
+                        {w.after !== undefined ? formatNumber(w.after) : '?'}
+                        {w.unit ? <span class="win-unit"> {w.unit}</span> : null}
                       </span>
                     )}
-                    <span class="note-meta">
-                      {[
-                        w.date ? formatDate(w.date) : null,
-                        w.source ? `confirmed by ${w.source}` : 'no source yet',
-                        w.milestoneId ? msTitle.get(w.milestoneId) : null,
-                        w.projectId ? projName.get(w.projectId) : null,
-                      ]
-                        .filter(Boolean)
-                        .join(' · ')}
-                    </span>
+                    {where && <span class="win-where">{where}</span>}
                   </Link>
-                  <div class="win-bullet">
-                    <p class="small" style={{ margin: 0 }}>
-                      <BulletText text={bullet.text} />
-                    </p>
-                    <div class="capture-row">
-                      <span class="muted small" role="status" aria-live="polite">
-                        {copied?.id === w.id ? copied.msg : ''}
+                  <div class="win-foot">
+                    {w.source ? (
+                      <span class="win-source">
+                        <CheckIcon />
+                        <span class="win-source-text">{w.source}</span>
                       </span>
-                      <button type="button" class="btn" onClick={() => copy(w.id, bullet.text, bullet.missing.length)}>
-                        Copy as CV bullet
-                      </button>
-                    </div>
+                    ) : (
+                      <span class="win-source win-source-missing">No source yet</span>
+                    )}
+                    <button
+                      type="button"
+                      class="btn btn-ghost btn-small"
+                      onClick={() => copy(w.id, bullet.text, bullet.missing.length)}
+                    >
+                      {copied?.id === w.id ? 'Copied' : 'Copy CV bullet'}
+                    </button>
                   </div>
+                  {copied?.id === w.id && copied.msg !== 'Copied.' && (
+                    <p class="muted small win-copy-msg" role="status">
+                      {copied.msg}
+                    </p>
+                  )}
                 </li>
               );
             })}
@@ -118,5 +125,13 @@ export function Wins() {
         </>
       )}
     </div>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" class="win-check">
+      <path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
   );
 }

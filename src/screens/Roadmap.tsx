@@ -1,3 +1,4 @@
+import type { ComponentChildren } from 'preact';
 import { useState } from 'preact/hooks';
 import { Modal } from '../components/Modal';
 import { Chevron, StatusIcon } from '../components/StatusIcon';
@@ -12,6 +13,16 @@ export function Roadmap() {
   const milestones = useAll<Milestone>('milestones');
   const projects = useAll<Project>('projects');
   const meta = useMeta();
+  const [openPhases, setOpenPhases] = useState(loadOpenPhases);
+  const togglePhase = (id: string, open: boolean) => {
+    const next = { ...openPhases, [id]: open };
+    setOpenPhases(next);
+    try {
+      localStorage.setItem(OPEN_KEY, JSON.stringify(next));
+    } catch {
+      /* storage blocked: the choice lasts until the app closes */
+    }
+  };
 
   if (!phases || !milestones || !projects) return <p class="muted">Loading…</p>;
 
@@ -19,29 +30,55 @@ export function Roadmap() {
   const elapsed = start ? monthsSince(start) : undefined;
   const projName = new Map(projects.map((p) => [p.id, p.name]));
   const sortedPhases = [...phases].sort((a, b) => a.order - b.order);
+  const currentIdx =
+    elapsed === undefined ? -1 : sortedPhases.findIndex((p) => elapsed >= p.monthsFrom && elapsed < p.monthsTo);
 
   return (
     <div>
-      <StartDate meta={meta} />
+      <StartDate meta={meta}>
+        {start && elapsed !== undefined && (
+          <Overview start={start} elapsed={elapsed} phases={sortedPhases} milestones={milestones} />
+        )}
+      </StartDate>
 
-      {sortedPhases.map((phase) => {
+      {sortedPhases.map((phase, idx) => {
         const items = milestones.filter((m) => m.phaseId === phase.id).sort((a, b) => a.order - b.order);
         const done = items.filter((m) => m.status === 'done').length;
-        const isCurrent = elapsed !== undefined && elapsed >= phase.monthsFrom && elapsed < phase.monthsTo;
+        const isCurrent = idx === currentIdx;
+        // Default view: the current phase, the next one, and earlier phases with unfinished work.
+        const defaultOpen =
+          currentIdx === -1 ||
+          idx === currentIdx ||
+          idx === currentIdx + 1 ||
+          (idx < currentIdx && done < items.length);
+        const open = openPhases[phase.id] ?? defaultOpen;
         return (
-          <section class="phase" key={phase.id} aria-labelledby={`ph-${phase.id}`}>
+          <section class={`phase${isCurrent ? ' phase-current' : ''}`} key={phase.id} aria-labelledby={`ph-${phase.id}`}>
             <div class="phase-head">
-              <h2 id={`ph-${phase.id}`}>
-                {phase.title}
+              <h2>
+                <button
+                  type="button"
+                  class="phase-toggle"
+                  id={`ph-${phase.id}`}
+                  aria-expanded={open}
+                  aria-controls={`pl-${phase.id}`}
+                  onClick={() => togglePhase(phase.id, !open)}
+                >
+                  <svg class="phase-chevron" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                  {phase.title}
+                </button>
                 {isCurrent && <span class="badge badge-accent">Now</span>}
               </h2>
-              <span class="muted small">
-                {done} of {items.length} done
+              <span class={`phase-count${done === items.length && items.length ? ' phase-count-done' : ''}`}>
+                {done}/{items.length}
               </span>
             </div>
             {start && (
               <p class="muted small phase-dates">
                 {formatMonth(addMonths(start, phase.monthsFrom))} – {formatMonth(addMonths(start, phase.monthsTo))}
+                {!open && items.length > 0 && ` · ${items.length} milestone${items.length === 1 ? '' : 's'}`}
               </p>
             )}
             <div
@@ -55,34 +92,112 @@ export function Roadmap() {
               <span style={{ width: items.length ? `${(done / items.length) * 100}%` : '0%' }} />
             </div>
 
-            <ul class="list">
-              {items.map((m) => (
-                <li key={m.id}>
-                  <a class="row" href={href('roadmap', 'm', m.id)}>
-                    <StatusIcon status={m.status} />
-                    <span class="row-main">
-                      {m.kind === 'gate' && (
-                        <span class="badge badge-warn">
-                          Decision gate{m.gateMonth !== undefined ? ` · month ${m.gateMonth}` : ''}
-                          {start && m.gateMonth !== undefined ? ` · ${formatMonth(addMonths(start, m.gateMonth))}` : ''}
+            {open && (
+              <div id={`pl-${phase.id}`}>
+                <ul class="list">
+                  {items.map((m) => (
+                    <li key={m.id}>
+                      <a class="row" href={href('roadmap', 'm', m.id)}>
+                        <StatusIcon status={m.status} />
+                        <span class="row-main">
+                          {m.kind === 'gate' && (
+                            <span class="badge badge-warn">
+                              Decision gate{m.gateMonth !== undefined ? ` · month ${m.gateMonth}` : ''}
+                              {start && m.gateMonth !== undefined ? ` · ${formatMonth(addMonths(start, m.gateMonth))}` : ''}
+                            </span>
+                          )}
+                          <span class={`row-title${m.status === 'done' ? ' row-title-done' : ''}`}>{m.title}</span>
+                          <span class="row-sub">{rowSub(m, m.projectId ? projName.get(m.projectId) : undefined)}</span>
                         </span>
-                      )}
-                      <span class="row-title">{m.title}</span>
-                      <span class="row-sub">{rowSub(m, m.projectId ? projName.get(m.projectId) : undefined)}</span>
-                    </span>
-                    <Chevron />
-                  </a>
-                </li>
-              ))}
-            </ul>
-            <a class="btn btn-ghost add-btn" href={href('roadmap', 'new', phase.id)}>
-              + Add milestone
-            </a>
+                        <Chevron />
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+                <a class="btn btn-ghost add-btn" href={href('roadmap', 'new', phase.id)}>
+                  + Add milestone
+                </a>
+              </div>
+            )}
           </section>
         );
       })}
     </div>
   );
+}
+
+// ---- which phases are expanded: remembered on this device only
+const OPEN_KEY = 'waypoint.ui.openPhases';
+
+function loadOpenPhases(): Record<string, boolean> {
+  try {
+    return JSON.parse(localStorage.getItem(OPEN_KEY) ?? '{}') as Record<string, boolean>;
+  } catch {
+    return {};
+  }
+}
+
+function Overview(props: { start: string; elapsed: number; phases: Phase[]; milestones: Milestone[] }) {
+  const { start, elapsed, phases, milestones } = props;
+  const total = milestones.length;
+  const done = milestones.filter((m) => m.status === 'done').length;
+  const active = milestones.filter((m) => m.status === 'in_progress').length;
+  const planMonths = Math.max(0, ...phases.map((p) => p.monthsTo));
+  const nextGate = milestones
+    .filter((m) => m.kind === 'gate' && m.status !== 'done' && m.gateMonth !== undefined)
+    .sort((a, b) => a.gateMonth! - b.gateMonth!)[0];
+
+  let when: string;
+  if (elapsed < 0) when = `Starts ${formatDate(start)}`;
+  else if (elapsed >= planMonths) when = 'Plan period complete';
+  else when = `Month ${elapsed + 1} of ${planMonths}`;
+
+  return (
+    <div class="overview">
+      <div class="overview-head">
+        <span class="overview-when">{when}</span>
+        <span class="overview-pct">{total ? Math.round((done / total) * 100) : 0}%</span>
+      </div>
+      <div
+        class="progress progress-lg"
+        role="progressbar"
+        aria-label="Overall progress"
+        aria-valuemin={0}
+        aria-valuemax={total}
+        aria-valuenow={done}
+      >
+        <span style={{ width: total ? `${(done / total) * 100}%` : '0%' }} />
+      </div>
+      <dl class="overview-stats">
+        <div>
+          <dt>Done</dt>
+          <dd>{done}</dd>
+        </div>
+        <div>
+          <dt>In progress</dt>
+          <dd>{active}</dd>
+        </div>
+        <div>
+          <dt>To do</dt>
+          <dd>{total - done - active}</dd>
+        </div>
+      </dl>
+      {nextGate && (
+        <a class="overview-gate" href={href('roadmap', 'm', nextGate.id)}>
+          <span class="badge badge-warn">Next decision gate</span>
+          <span class="overview-gate-when">
+            {formatMonth(addMonths(start, nextGate.gateMonth!))} ·{' '}
+            {gateCountdown(nextGate.gateMonth! - Math.max(elapsed, 0))}
+          </span>
+        </a>
+      )}
+    </div>
+  );
+}
+
+function gateCountdown(months: number): string {
+  if (months <= 0) return 'due now';
+  return `in ${months} month${months === 1 ? '' : 's'}`;
 }
 
 function rowSub(m: Milestone, project?: string): string {
@@ -93,7 +208,7 @@ function rowSub(m: Milestone, project?: string): string {
   return parts.join(' · ');
 }
 
-function StartDate(props: { meta: Meta | undefined }) {
+function StartDate(props: { meta: Meta | undefined; children?: ComponentChildren }) {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState('');
   const start = props.meta?.startDate;
@@ -115,14 +230,17 @@ function StartDate(props: { meta: Meta | undefined }) {
   return (
     <div class="card start-card">
       {start ? (
-        <div class="start-row">
-          <span>
-            <span class="muted">Plan started</span> <strong>{formatDate(start)}</strong>
-          </span>
-          <button type="button" class="btn btn-ghost" onClick={openEditor}>
-            Change
-          </button>
-        </div>
+        <>
+          {props.children}
+          <div class="start-row">
+            <span class="muted small">
+              Plan started <strong>{formatDate(start)}</strong>
+            </span>
+            <button type="button" class="link-button small" onClick={openEditor}>
+              Change
+            </button>
+          </div>
+        </>
       ) : (
         <div>
           <p style={{ marginTop: 0 }}>Set your plan's start date to see real months for each phase and decision gate.</p>
